@@ -16,6 +16,7 @@
 
 using namespace std;
 using namespace DUtilsCV;
+using namespace cv;
 
 // ---------------------------------------------------------------------------
 
@@ -23,11 +24,11 @@ void Drawing::drawKeyPoints(cv::Mat &image,
     const std::vector<cv::KeyPoint> &keypoints,
     bool colorOctave, bool useCartesianAngle)
 {
-  CvScalar colors[4] = {
-    cvScalar(0, 0, 255),
-    cvScalar(0, 255, 0),
-    cvScalar(255, 0, 0),
-    cvScalar(255, 255, 255) 
+  Scalar colors[4] = {
+    Scalar(0, 0, 255),
+    Scalar(0, 255, 0),
+    Scalar(255, 0, 0),
+    Scalar(255, 255, 255) 
   };
 
   const double PI = 3.14159265;
@@ -39,7 +40,7 @@ void Drawing::drawKeyPoints(cv::Mat &image,
     float s = it->size / 2.f;
     //if(s < 3.f) s = 3.f;
     
-    const CvScalar *color;
+    const Scalar *color;
     if(!colorOctave || it->octave < 1 || it->octave > 3)
       color = &colors[3];
     else
@@ -48,7 +49,7 @@ void Drawing::drawKeyPoints(cv::Mat &image,
     int r1 = (int)(it->pt.y + 0.5);
     int c1 = (int)(it->pt.x + 0.5);
     
-    cv::circle(image, cvPoint(c1, r1), (int)s, *color, 1);
+    cv::circle(image, Point(c1, r1), (int)s, *color, 1);
     
     if(it->angle >= 0)
     {
@@ -62,7 +63,7 @@ void Drawing::drawKeyPoints(cv::Mat &image,
       else
         r2 = (int)(s * sin(o) + it->pt.y + 0.5);
 
-      cv::line(image, cvPoint(c1, r1), cvPoint(c2, r2), *color);
+      cv::line(image, Point(c1, r1), Point(c2, r2), *color);
     }
   }
 }
@@ -102,12 +103,12 @@ void Drawing::drawCorrespondences(cv::Mat &image, const cv::Mat &img1,
   
   cv::Mat aux1, aux2;
   if(img1.channels() > 1)
-    cv::cvtColor(img1, aux1, CV_RGB2GRAY);
+    cv::cvtColor(img1, aux1, COLOR_RGB2GRAY);
   else
     aux1 = img1.clone();
   
   if(img2.channels() > 1)
-    cv::cvtColor(img2, aux2, CV_RGB2GRAY);
+    cv::cvtColor(img2, aux2, COLOR_RGB2GRAY);
   else
     aux2 = img2.clone();
 
@@ -115,49 +116,49 @@ void Drawing::drawCorrespondences(cv::Mat &image, const cv::Mat &img1,
   Drawing::drawKeyPoints(aux2, kp2);
 
   cv::Mat im = cv::Mat::zeros(rows, cols, CV_8UC1);
-  IplImage ipl_im = IplImage(im);
-  IplImage* ipl_ret = &ipl_im;
+  Mat ipl_im = Mat(im);
+  Mat ipl_roi;
 
-  CvRect roi;
+  Rect roi;
   roi.x = 0;
   roi.y = 0;
   roi.width = img1.cols;
   roi.height = img1.rows;
-	
-  cvSetImageROI(ipl_ret, roi);
-  IplImage ipl_aux1 = IplImage(aux1);
-  cvCopy(&ipl_aux1, ipl_ret);
-  
+
+  ipl_roi = ipl_im(roi);
+
+  Mat ipl_aux1 = Mat(aux1);
+  ipl_aux1.copyTo(ipl_roi);
+
   roi.x = 0;
   roi.y = img1.rows;
   roi.width = img2.cols;
   roi.height = img2.rows;
-	
-  cvSetImageROI(ipl_ret, roi);
-  IplImage ipl_aux2 = IplImage(aux2);
-  cvCopy(&ipl_aux2, ipl_ret);
 
-	cvResetImageROI(ipl_ret);
+  ipl_roi = ipl_im(roi);
 
-	// draw correspondences
-	cv::cvtColor(im, image, CV_GRAY2RGB);
-	
-	for(unsigned int i = 0; i < c1.size(); ++i)
-	{
-	  int mx = (int)kp1[ c1[i] ].pt.x;
-	  int my = (int)kp1[ c1[i] ].pt.y;
-	  int px = (int)kp2[ c2[i] ].pt.x;
-	  int py = (int)kp2[ c2[i] ].pt.y;
+  Mat ipl_aux2 = Mat(aux2);
+  ipl_aux2.copyTo(ipl_roi);
+
+  // draw correspondences
+  cv::cvtColor(im, image, COLOR_GRAY2RGB);
+
+  for(unsigned int i = 0; i < c1.size(); ++i)
+  {
+    int mx = (int)kp1[ c1[i] ].pt.x;
+    int my = (int)kp1[ c1[i] ].pt.y;
+    int px = (int)kp2[ c2[i] ].pt.x;
+    int py = (int)kp2[ c2[i] ].pt.y;
+
+    py += img1.rows;
 	  
-	  py += img1.rows;
-	  
-    CvScalar color = cvScalar( 
+    Scalar color = Scalar( 
       int(((double)rand()/((double)RAND_MAX + 1.0)) * 256.0),
       int(((double)rand()/((double)RAND_MAX + 1.0)) * 256.0),
       int(((double)rand()/((double)RAND_MAX + 1.0)) * 256.0));
 
-    cv::line(image, cvPoint(mx, my), cvPoint(px, py), color, 1);
-	}
+    cv::line(image, Point(mx, my), Point(px, py), color, 1);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -206,19 +207,19 @@ void Drawing::drawReferenceSystem(cv::Mat &image, const cv::Mat &cRo,
   cv::projectPoints(cv::Mat(oP), cRo, cto, A, k, points2d);
   
   // draw axis
-  CvScalar bluez, greeny, redx;
+  Scalar bluez, greeny, redx;
   
-  if(image.channels() == 3 )
+  if(image.channels() == 3)
   {
-    bluez = cvScalar(255,0,0);
-    greeny = cvScalar(0,255,0);
-    redx = cvScalar(0,0,255);
+    bluez = Scalar(255,0,0);
+    greeny = Scalar(0,255,0);
+    redx = Scalar(0,0,255);
   }
   else
   {
-    bluez = cvScalar(18,18,18);
-    greeny = cvScalar(182,182,182);
-    redx = cvScalar(120,120,120);
+    bluez = Scalar(18,18,18);
+    greeny = Scalar(182,182,182);
+    redx = Scalar(120,120,120);
   }
 
   cv::line(image, points2d[0], points2d[1], redx, 2);
@@ -376,7 +377,7 @@ void Drawing::Plot::create(double minx, double maxx, double miny, double maxy,
   int margin)
 {
   m_margin = margin;
-  setAxes(minx, maxx, miny, maxy, m_margin);
+  setAxes(minx, maxx, miny, maxy, margin);
   m_canvas = m_bg;
 }
 
@@ -398,8 +399,8 @@ void Drawing::Plot::setAxes(double minx, double maxx, double miny, double maxy,
   double xdif = maxx - minx;
   double ydif = maxy - miny;
   
-  m_uppx = xdif / double(m_canvas.cols - m_margin*2); // units per pixel
-  m_uppy = ydif / double(m_canvas.rows - m_margin*2);
+  m_uppx = xdif / double(m_canvas.cols - margin*2); // units per pixel
+  m_uppy = ydif / double(m_canvas.rows - margin*2);
   
   // axis equal
   if(m_uppx > m_uppy)

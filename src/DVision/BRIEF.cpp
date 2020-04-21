@@ -18,6 +18,7 @@
 
 using namespace std;
 using namespace DVision;
+using namespace cv;
 
 // ----------------------------------------------------------------------------
 
@@ -52,7 +53,7 @@ void BRIEF::compute(const cv::Mat &image,
     cv::Mat aux;
     if(image.depth() == 3)
     {
-      cv::cvtColor(image, aux, CV_RGB2GRAY);
+      cv::cvtColor(image, aux, COLOR_RGB2GRAY);
     }
     else
     {
@@ -67,7 +68,7 @@ void BRIEF::compute(const cv::Mat &image,
     im = image;
   }
   
-  assert(im.type() == CV_8UC1);
+  assert(im.type() == cv::COLOR_8UC1);
   assert(im.isContinuous());
   
   // use im now

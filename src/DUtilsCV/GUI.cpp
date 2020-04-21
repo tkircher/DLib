@@ -12,6 +12,7 @@
 #include <queue>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/highgui/highgui_c.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <cstdio>
 #include <string>
@@ -23,6 +24,7 @@
 
 using namespace std;
 using namespace DUtilsCV;
+using namespace cv;
 
 // ---------------------------------------------------------------------------
 
@@ -39,7 +41,7 @@ int GUI::showImage(const cv::Mat &image, bool autosize,
     name = ssname.str();
     
     int flags = 0;
-    if(autosize) flags |= CV_WINDOW_AUTOSIZE;
+    if(autosize) flags |= WINDOW_AUTOSIZE;
     
     cv::namedWindow( name.c_str(), flags );
     
@@ -81,7 +83,7 @@ int GUI::showImageInfo(const cv::Mat &image, bool autosize,
   tWinHandler *hwnd = (_hwnd ? _hwnd : &haux);
   
   if(image.type() == CV_8U)
-    cv::cvtColor(image, image_rgb, CV_GRAY2RGB);
+    cv::cvtColor(image, image_rgb, COLOR_GRAY2RGB);
   else
     image_rgb = image;
   
@@ -237,7 +239,7 @@ void GUI::MouseHandler::attach(const tWinHandler &hwnd,
 void GUI::MouseHandler::attachToClicks(const tWinHandler &hwnd)
 {
   m_valid_events.resize(1);
-  m_valid_events[0] = CV_EVENT_LBUTTONUP;
+  m_valid_events[0] = EVENT_LBUTTONUP;
   m_attached = true;
   cv::setMouseCallback(hwnd, GUI::MouseHandler::callbackHandlerFunction, this);
 }
@@ -247,7 +249,7 @@ void GUI::MouseHandler::attachToClicks(const tWinHandler &hwnd)
 void GUI::MouseHandler::attachToMotions(const tWinHandler &hwnd)
 {
   m_valid_events.resize(1);
-  m_valid_events[0] = CV_EVENT_MOUSEMOVE;
+  m_valid_events[0] = EVENT_MOUSEMOVE;
   m_attached = true;
   cv::setMouseCallback(hwnd, GUI::MouseHandler::callbackHandlerFunction, this);
 }
@@ -275,16 +277,16 @@ void GUI::MouseHandler::listenToAll()
   //@note RACE CONDITION!
   
   m_valid_events.resize(10);
-  m_valid_events[0] = CV_EVENT_LBUTTONDOWN;
-  m_valid_events[1] = CV_EVENT_LBUTTONUP;
-  m_valid_events[2] = CV_EVENT_LBUTTONDBLCLK;
-  m_valid_events[3] = CV_EVENT_RBUTTONDOWN;
-  m_valid_events[4] = CV_EVENT_RBUTTONUP;
-  m_valid_events[5] = CV_EVENT_RBUTTONDBLCLK;
-  m_valid_events[6] = CV_EVENT_MBUTTONDOWN;
-  m_valid_events[7] = CV_EVENT_MBUTTONUP;
-  m_valid_events[8] = CV_EVENT_MBUTTONDBLCLK;
-  m_valid_events[9] = CV_EVENT_MOUSEMOVE;
+  m_valid_events[0] = EVENT_LBUTTONDOWN;
+  m_valid_events[1] = EVENT_LBUTTONUP;
+  m_valid_events[2] = EVENT_LBUTTONDBLCLK;
+  m_valid_events[3] = EVENT_RBUTTONDOWN;
+  m_valid_events[4] = EVENT_RBUTTONUP;
+  m_valid_events[5] = EVENT_RBUTTONDBLCLK;
+  m_valid_events[6] = EVENT_MBUTTONDOWN;
+  m_valid_events[7] = EVENT_MBUTTONUP;
+  m_valid_events[8] = EVENT_MBUTTONDBLCLK;
+  m_valid_events[9] = EVENT_MOUSEMOVE;
   
   std::sort(m_valid_events.begin(), m_valid_events.end());
 }
