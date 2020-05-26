@@ -24,11 +24,11 @@ void Drawing::drawKeyPoints(cv::Mat &image,
     const std::vector<cv::KeyPoint> &keypoints,
     bool colorOctave, bool useCartesianAngle)
 {
-  Scalar colors[4] = {
-    Scalar(0, 0, 255),
-    Scalar(0, 255, 0),
-    Scalar(255, 0, 0),
-    Scalar(255, 255, 255) 
+  cv::Scalar colors[4] = {
+    cv::Scalar(0, 0, 255),
+    cv::Scalar(0, 255, 0),
+    cv::Scalar(255, 0, 0),
+    cv::Scalar(255, 255, 255)
   };
 
   const double PI = 3.14159265;
@@ -40,7 +40,7 @@ void Drawing::drawKeyPoints(cv::Mat &image,
     float s = it->size / 2.f;
     //if(s < 3.f) s = 3.f;
     
-    const Scalar *color;
+    const cv::Scalar *color;
     if(!colorOctave || it->octave < 1 || it->octave > 3)
       color = &colors[3];
     else
@@ -49,7 +49,7 @@ void Drawing::drawKeyPoints(cv::Mat &image,
     int r1 = (int)(it->pt.y + 0.5);
     int c1 = (int)(it->pt.x + 0.5);
     
-    cv::circle(image, Point(c1, r1), (int)s, *color, 1);
+    cv::circle(image, cv::Point(c1, r1), (int)s, *color, 1);
     
     if(it->angle >= 0)
     {
@@ -63,7 +63,7 @@ void Drawing::drawKeyPoints(cv::Mat &image,
       else
         r2 = (int)(s * sin(o) + it->pt.y + 0.5);
 
-      cv::line(image, Point(c1, r1), Point(c2, r2), *color);
+      cv::line(image, cv::Point(c1, r1), cv::Point(c2, r2), *color);
     }
   }
 }
@@ -103,12 +103,12 @@ void Drawing::drawCorrespondences(cv::Mat &image, const cv::Mat &img1,
   
   cv::Mat aux1, aux2;
   if(img1.channels() > 1)
-    cv::cvtColor(img1, aux1, COLOR_RGB2GRAY);
+    cv::cvtColor(img1, aux1, cv::COLOR_RGB2GRAY);
   else
     aux1 = img1.clone();
   
   if(img2.channels() > 1)
-    cv::cvtColor(img2, aux2, COLOR_RGB2GRAY);
+    cv::cvtColor(img2, aux2, cv::COLOR_RGB2GRAY);
   else
     aux2 = img2.clone();
 
@@ -116,32 +116,24 @@ void Drawing::drawCorrespondences(cv::Mat &image, const cv::Mat &img1,
   Drawing::drawKeyPoints(aux2, kp2);
 
   cv::Mat im = cv::Mat::zeros(rows, cols, CV_8UC1);
-  Mat ipl_im = Mat(im);
-  Mat ipl_roi;
 
-  Rect roi;
+  cv::Rect roi;
   roi.x = 0;
   roi.y = 0;
   roi.width = img1.cols;
   roi.height = img1.rows;
 
-  ipl_roi = ipl_im(roi);
-
-  Mat ipl_aux1 = Mat(aux1);
-  ipl_aux1.copyTo(ipl_roi);
-
+  im(roi) = aux1 * 1;
+  
   roi.x = 0;
   roi.y = img1.rows;
   roi.width = img2.cols;
   roi.height = img2.rows;
 
-  ipl_roi = ipl_im(roi);
-
-  Mat ipl_aux2 = Mat(aux2);
-  ipl_aux2.copyTo(ipl_roi);
-
+  im(roi) = aux2 * 1;
+	
   // draw correspondences
-  cv::cvtColor(im, image, COLOR_GRAY2RGB);
+  cv::cvtColor(im, image, cv::COLOR_GRAY2RGB);
 
   for(unsigned int i = 0; i < c1.size(); ++i)
   {
@@ -151,13 +143,13 @@ void Drawing::drawCorrespondences(cv::Mat &image, const cv::Mat &img1,
     int py = (int)kp2[ c2[i] ].pt.y;
 
     py += img1.rows;
-	  
-    Scalar color = Scalar( 
+
+    cv::Scalar color = cv::Scalar( 
       int(((double)rand()/((double)RAND_MAX + 1.0)) * 256.0),
       int(((double)rand()/((double)RAND_MAX + 1.0)) * 256.0),
       int(((double)rand()/((double)RAND_MAX + 1.0)) * 256.0));
 
-    cv::line(image, Point(mx, my), Point(px, py), color, 1);
+    cv::line(image, cv::Point(mx, my), cv::Point(px, py), color, 1);
   }
 }
 
@@ -207,19 +199,19 @@ void Drawing::drawReferenceSystem(cv::Mat &image, const cv::Mat &cRo,
   cv::projectPoints(cv::Mat(oP), cRo, cto, A, k, points2d);
   
   // draw axis
-  Scalar bluez, greeny, redx;
+  cv::Scalar bluez, greeny, redx;
   
   if(image.channels() == 3)
   {
-    bluez = Scalar(255,0,0);
-    greeny = Scalar(0,255,0);
-    redx = Scalar(0,0,255);
+    bluez = cv::Scalar(255,0,0);
+    greeny = cv::Scalar(0,255,0);
+    redx = cv::Scalar(0,0,255);
   }
   else
   {
-    bluez = Scalar(18,18,18);
-    greeny = Scalar(182,182,182);
-    redx = Scalar(120,120,120);
+    bluez = cv::Scalar(18,18,18);
+    greeny = cv::Scalar(182,182,182);
+    redx = cv::Scalar(120,120,120);
   }
 
   cv::line(image, points2d[0], points2d[1], redx, 2);
